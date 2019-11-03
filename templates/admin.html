@@ -30,12 +30,11 @@
       <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav ml-auto">
           <li class="nav-item active">
-            <a class="nav-link" href="#">Home
-              <span class="sr-only">(current)</span>
-            </a>
+            <a class="nav-link" href="/recomended">Home</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/admin">Admin</a>
+            <a class="nav-link" href="#">Admin
+              <span class="sr-only">(current)</span></a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="#">Services</a>
@@ -52,34 +51,36 @@
   <div class="container">
 
     <!-- Jumbotron Header -->
-  <!--  <header class="jumbotron my-4">
-      <h1 class="display-3">A Warm Welcome!</h1>
-      <p class="lead">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsa, ipsam, eligendi, in quo sunt possimus non incidunt odit vero aliquid similique quaerat nam nobis illo aspernatur vitae fugiat numquam repellat.</p>
-      <a href="#" class="btn btn-primary btn-lg">Call to action!</a>
-    </header>
-  -->
-    <div class="row text-center">
-      {{message}}
+  <header class="jumbotron my-0">
+    <form action = "/uploader" method = "POST" enctype = "multipart/form-data" class = "form-inline">
+        <div class="col-lg-4 col-md-6 mb-2">
+          <h4 class="display-4">Upload File: </h4>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-2">
+          <input type = "file" name = "file" class="custom-file-input" id="customFile">
+          <label class="custom-file-label" for="customFile">Choose file</label>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-2">
+          <input class="btn btn-primary" type="submit"/>
+        </div>
+    </form>
+  </header>
+
+
+  
+  <header class="jumbotron my-0">
+    <h2 class="display-4">Set Cluster Number</h2>
+    <form class = "form-inline" action = "/setk" method = "POST">
+      <label for="k">Number: </label> 
+      <input class="form-control" value="3" type = "number" name = "k" id="k"/>
+      <input class="btn btn-primary" type = "submit"/>
+    </form>
+  </header>
+ 
+    <div class="row text-center ">
+     
     </div>
 
-    <!-- Page Features -->
-    {%for movies in list %}
-    <div style="background-color: gainsboro; padding: 0.7%;margin: 1.5%;" class="row text-center">
-      {% for m in movies %}
-      <div class="col-lg-2 col-md-6 mb-2">
-        <div class="card h-100">
-          <img class="card-img-top" src="http://placehold.it/46x69" alt="">
-          <div style="padding: 0.1%;text-align: center;" class="card-body">
-            <h6 style="top: 10%; position: relative; " class="card-title">{{m.movie_title}}</h6>
-          </div>
-        </div>
-      </div>
-      {% endfor %}
-      <div  class="col-lg-2 col-md-6 mb-2">
-        <a style=" top: 40%; right: 30%; position: absolute;" href="#" class="btn btn-primary">Buy Now</a>
-      </div>
-    </div>
-    {% endfor %}
     <!-- /.row -->
 
   </div>
@@ -95,7 +96,13 @@
   <!-- Bootstrap core JavaScript -->
   <script src="{{ url_for('static',filename='vendor/jquery/jquery.min.js') }}"></script>
   <script src="{{ url_for('static',filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-
+  <script>
+    // Add the following code if you want the name of the file appear on select
+    $(".custom-file-input").on("change", function() {
+      var fileName = $(this).val().split("\\").pop();
+      $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+    });
+    </script>
 </body>
 
 </html>
