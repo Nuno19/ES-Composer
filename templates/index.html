@@ -23,7 +23,7 @@
   <!-- Navigation -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
     <div class="container">
-      <a class="navbar-brand" href="#">ES Recommender</a>
+      <a class="navbar-brand" href="/recomended">ES Recommender</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -38,11 +38,12 @@
             <a class="nav-link" href="/admin">Admin</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">Services</a>
+            <form class = "form-inline" action = "/search" method = "GET">
+              <input class="form-control"type = "text" name = "query" id="query" placeholder="Search Keyword..."/>
+              <input class="btn btn-primary" type = "submit"/>
+            </form>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Contact</a>
-          </li>
+          
         </ul>
       </div>
     </div>

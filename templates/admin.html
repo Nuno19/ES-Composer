@@ -23,24 +23,24 @@
   <!-- Navigation -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
     <div class="container">
-      <a class="navbar-brand" href="#">ES Recommender</a>
+      <a class="navbar-brand" href="/recomended">ES Recommender</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav ml-auto">
-          <li class="nav-item active">
+          <li class="nav-item">
             <a class="nav-link" href="/recomended">Home</a>
           </li>
-          <li class="nav-item">
+          <li class="nav-item active">
             <a class="nav-link" href="#">Admin
               <span class="sr-only">(current)</span></a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">Services</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Contact</a>
+              <form class = "form-inline" action = "/search" method = "GET">
+                <input class="form-control"type = "text" name = "query" id="query" placeholder="Search Keyword..."/>
+                <input class="btn btn-primary" type = "submit"/>
+              </form>
           </li>
         </ul>
       </div>
@@ -49,9 +49,17 @@
 
   <!-- Page Content -->
   <div class="container">
-
+    
     <!-- Jumbotron Header -->
   <header class="jumbotron my-0">
+    {% for aler in get_flashed_messages() %}
+    <script>setTimeout(function(){
+        alert("{{aler}}");
+    }, 300);</script>
+      <div class="alert alert-info"> <button type="button" class="close" data-dismiss="alert">&times;</button>
+        {{aler}}
+      </div>
+      {% endfor %}
     <form action = "/uploader" method = "POST" enctype = "multipart/form-data" class = "form-inline">
         <div class="col-lg-4 col-md-6 mb-2">
           <h4 class="display-4">Upload File: </h4>
@@ -72,7 +80,7 @@
     <h2 class="display-4">Set Cluster Number</h2>
     <form class = "form-inline" action = "/setk" method = "POST">
       <label for="k">Number: </label> 
-      <input class="form-control" value="3" type = "number" name = "k" id="k"/>
+      <input class="form-control" value="{{k}}" type = "number" name = "k" id="k"/>
       <input class="btn btn-primary" type = "submit"/>
     </form>
   </header>
