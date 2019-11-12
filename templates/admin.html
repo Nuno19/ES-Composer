@@ -53,9 +53,7 @@
     <!-- Jumbotron Header -->
   <header class="jumbotron my-0">
     {% for aler in get_flashed_messages() %}
-    <script>setTimeout(function(){
-        alert("{{aler}}");
-    }, 300);</script>
+   
       <div class="alert alert-info"> <button type="button" class="close" data-dismiss="alert">&times;</button>
         {{aler}}
       </div>
