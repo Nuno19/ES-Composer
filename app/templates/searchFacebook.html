@@ -13,6 +13,7 @@
   <script src="{{ url_for('static',filename='vendor/jquery/jquery.min.js') }}"></script>
   <!-- Custom styles for this template -->
   <link href="{{ url_for('static',filename='css/heroic-features.css') }}" rel="stylesheet" />
+  <link href="{{ url_for('static',filename='css/flat-example.css') }}" rel="stylesheet" />
 </head>
 
 <body>
@@ -41,18 +42,18 @@
               <input class="btn btn-primary" type="submit" />
             </form>
           </li>
-          {% if login %}
           <li class="nav-item">
             <a class="nav-link" href="/facebook/login">Login</a>
           </li>
-          {% endif %}
         </ul>
       </div>
     </div>
   </nav>
 
   <!-- Page Content -->
-  <div id="container" class="container">
+
+
+  <div class="wrapper">
     <!-- Jumbotron Header -->
     <!--  <header class="jumbotron my-4">
       <h1 class="display-3">A Warm Welcome!</h1>
@@ -63,16 +64,15 @@
 
     
 
-
-    <!-- Page Features -->
-    {%for movies in list %}
-      <div class="row text-center">
+  <section class="main-container">
+      {%for movies in list %}
+      <div class="location" id="home">
         <h3> <small>Because you liked:</small> {{movies.packName}} </h3>
+        <!--<a style=" top: 40%; right: 30%; position: absolute;" href="#" class="btn btn-primary">Buy Now</a>-->
       </div>
-    <div style="background-color: gainsboro; padding: 0.7%;margin: 1.5%;" class="row text-center">
+    <div class="box">
       {% for m in movies.movies %}
-      <div class="col-lg-2 col-md-6 mb-2">
-        <script>
+      <script>
           $(document).ready(function () {
             getImgFromServer("{{m.imdbID}}","IMD{{m.imdbID}},small");
           });
@@ -80,17 +80,8 @@
 
         <div data-toggle="modal" data-target="#{{ m.imdbID }}" class="card h-100">
           <img id="IMD{{ m.imdbID }}" class="card-img-top" src="{m.poster}" alt="" />
-          <div style="padding: 0.1%;text-align: center;" class="card-body">
-            <h6 style="top: 10%; position: relative; " class="card-title">
-              {{ m.movie_title }}
-            </h6>
-          </div>
         </div>
-      </div>
       {% endfor %}
-      <div class="col-lg-2 col-md-6 mb-2">
-        <a style=" top: 40%; right: 30%; position: absolute;" href="#" class="btn btn-primary">Buy Now</a>
-      </div>
     </div>
     {% for m in movies.movies %}
     <!-- /.row -->
@@ -168,6 +159,9 @@
     </div>
 
     {% endfor %} {% endfor %}
+  </div>
+    <!-- Page Features -->
+    
   </div>
   <!-- /.container -->
   <!--
