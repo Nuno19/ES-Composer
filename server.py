@@ -140,9 +140,6 @@ def getRecomended():
         text = requests.get(BASE_REC_URL+"getRecommended",{"centID":1})
         files = json.loads(text.text)
         dataList1 = [json.loads(f["data"]) for f in files]
-        fbId = session["id"]
-        print("FBID:" + fbId )
-        print(MovieLike.getAllUserLikes(fbId))
         
         return render_template("index.html", list=[dataList[:5],dataList1[:5]])
 
@@ -220,7 +217,7 @@ def getPoster():
     data = json.loads(data)
     if "movie_results" not in data:
         return "https://critics.io/img/movies/poster-placeholder.png"
-        
+
     data = data["movie_results"]
     if len(data) == 0:
         return "https://critics.io/img/movies/poster-placeholder.png"

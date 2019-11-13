@@ -1,2 +1,4 @@
 flask_oauth
 flask
+flask_sqlalchemy
+rauth
