@@ -9,7 +9,7 @@ To Run Windows:
 
     pip install -r requirements.txt
 
-    flask run --cert=adhoc --port 8000
+    flask run --port 8000 --cert=cert.crt --key=cert.key
 
 To Run Linux:
 
@@ -18,4 +18,4 @@ To Run Linux:
 
     pip install -r requirements.txt
 
-    flask run --cert=adhoc --port 8000
+    flask run --port 8000 --cert=cert.crt --key=cert.key
