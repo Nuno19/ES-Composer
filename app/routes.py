@@ -1,5 +1,5 @@
 from app import app
-from app.models import User, MovieLike
+from app.models import User, MovieLike,MovieWatched,MovieGenre,MovieActor
 import os
 from flask import Flask, render_template,request,flash,url_for,redirect,session
 import requests
@@ -54,16 +54,34 @@ def authorized():
     session["id"] = me["id"]
     #likes = sessions.get('me?fields=likes.summary(true)').json()
     likes = auth.get('me?fields=movies').json()
+    us = User.get_or_create(me["name"],me["id"])
     
+
     movies = [data["name"] for data in likes["movies"]["data"]]
     
     print(movies)
-    us = User.get_or_create(me["name"],me["id"])
     for l in movies:
-        MovieLike.addToUser(l,us)    
+         us.addLike(MovieLike(title=l))
     print(us.likes)
     flash('Logged in as ' + me['name'])
 
+    return redirect(url_for('getRecomended'))
+
+@app.route('/setWatch',methods=['GET'])
+def setWatch():
+    if "id" not in session:
+            flash("Not Logged in!")
+            return render_template("index.html")
+
+    
+    mov = MovieWatched(title="Tit",imdbID="tsa323a")
+    
+    mov.addGenres(["Gen1","gen2"])
+    mov.addActors(["ACT1","Act2"])
+    us = User.getById(session["id"])
+    
+    us.addWatched(mov)
+    
     return redirect(url_for('getRecomended'))
 
 
@@ -91,7 +109,7 @@ def getFromFacebookLikes():
 
         likes = MovieLike.getAllUserLikes(session["id"])
         shuffle(likes)
-        likes = likes[:5]
+        likes = likes[:2]
         titles = [l.title for l in likes]
         toRet = []
         for l in titles:
