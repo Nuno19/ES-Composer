@@ -13,3 +13,4 @@ class Config(object):
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess'
 
     UPLOAD_TO_RECOMENDATION=False
+    K = 10

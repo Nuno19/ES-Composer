@@ -24,6 +24,13 @@
   h1 {
     padding-top: 60px;  
   }
+
+  .filters-me{
+    
+    -webkit-filter:  blur(100%) grayscale(60%);
+    
+  }
+
   
   .wrapper {
     margin: 0;

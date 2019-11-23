@@ -4,7 +4,7 @@ import os
 from flask import Flask, render_template,request,flash,url_for,redirect,session
 import requests
 import json
-from random import shuffle
+from random import shuffle,randint
 from rauth.service import OAuth2Service
 
 
@@ -89,16 +89,18 @@ def setWatch():
 def getRecomended():
     if request.method == 'GET':
        # centID = request.args.get("centID")
-        text = requests.get(REC_URL+"getRecommended",{"centID":0})
-        files = json.loads(text.text)
+        text = requests.get(REC_URL+"getRecommended",{"centID":randint(0,app.config["K"]-1)})
+        print(text.text)
+        toLoad = text.text
+        if toLoad is None:
+            return render_template("index.html", movies=[],login=login)
+
+        files = json.loads(toLoad)
         dataList = [json.loads(f["data"]) for f in files]
         shuffle(dataList)
-       
-        text = requests.get(REC_URL+"getRecommended",{"centID":1})
-        files = json.loads(text.text)
-        dataList1 = [json.loads(f["data"]) for f in files]
+
         login = "me" not in session
-        return render_template("index.html", list=[dataList[:5],dataList1[:5]],login=login)
+        return render_template("index.html",relevent=dataList[0] ,movies=dataList[1:16],login=login)
 
 @app.route('/facebookRecomended',methods=['GET'])
 def getFromFacebookLikes():
@@ -130,13 +132,13 @@ def searchPack():
     if request.method == 'GET':
         query = request.args.get("query")
         if query == "":
-            return render_template("index.html", list=[])
+            return render_template("index.html", movies=[])
         result = requests.get(REC_URL+"GetTextRecommended",{"query":query})
         
-        #print(result.text)
+        print(result.text)
         list = json.loads(result.text)
         pack = [json.loads(f["data"]) for f in list ]
-    return render_template("index.html", list=[pack[:20]])
+    return render_template("index.html",relevent=[], movies=pack[:20])
         
 
 
@@ -160,7 +162,26 @@ def payment():
         return render_template("payment.html")
 
 
+@app.route('/getBackDrop',methods=['GET'])
+def getBackDrop():
+    imdbID = request.args.get("imdbID")
+    if imdbID == None:
+        return None 
+    url = "https://api.themoviedb.org/3/find/{imdbID}?api_key={TMDB_SECRET}&language=en-US&external_source=imdb_id".format(imdbID=imdbID,TMDB_SECRET=app.config["TMDB_SECRET"])
+   
+    data = requests.get(url).text
+    data = json.loads(data)
+    if "movie_results" not in data:
+        return "https://d32qys9a6wm9no.cloudfront.net/images/movies/poster/500x735.png"
 
+    data = data["movie_results"]
+    if len(data) == 0:
+        return "https://d32qys9a6wm9no.cloudfront.net/images/movies/poster/500x735.png"
+    data = data[0]
+
+    print("https://image.tmdb.org/t/p/original"+ data["backdrop_path"])
+    return "https://image.tmdb.org/t/p/original"+ data["backdrop_path"]
+    
 
 @app.route('/getPoster',methods=['GET'])
 def getPoster():
@@ -173,16 +194,15 @@ def getPoster():
     data = requests.get(url).text
     data = json.loads(data)
     if "movie_results" not in data:
-        return "https://critics.io/img/movies/poster-placeholder.png"
+        return "https://d32qys9a6wm9no.cloudfront.net/images/movies/poster/500x735.png"
 
     data = data["movie_results"]
     if len(data) == 0:
-        return "https://critics.io/img/movies/poster-placeholder.png"
+        return "https://d32qys9a6wm9no.cloudfront.net/images/movies/poster/500x735.png"
     data = data[0]
-
     if size == "small":
        # print("https://image.tmdb.org/t/p/w85"+ data["poster_path"])
         return "https://image.tmdb.org/t/p/w185"+ data["poster_path"]
     
   #  print("https://image.tmdb.org/t/p/w300"+ data["poster_path"])
-    return "https://image.tmdb.org/t/p/w300"+ data["poster_path"]
+    return "https://image.tmdb.org/t/p/w185"+ data["poster_path"]

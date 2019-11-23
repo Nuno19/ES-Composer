@@ -4,3 +4,4 @@ flask
 flask_sqlalchemy
 rauth
 pyopenssl
+gunicorn

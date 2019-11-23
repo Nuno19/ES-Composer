@@ -72,15 +72,19 @@
       </div>
     <div class="box">
       {% for m in movies.movies %}
-      <script>
-          $(document).ready(function () {
-            getImgFromServer("{{m.imdbID}}","IMD{{m.imdbID}},small");
-          });
-        </script>
-
-        <div data-toggle="modal" data-target="#{{ m.imdbID }}" class="card h-100">
-          <img id="IMD{{ m.imdbID }}" class="card-img-top" src="{m.poster}" alt="" />
-        </div>
+  
+        <div data-toggle="modal" data-target="#{{ m.imdbID }}" class="card h-100 ">
+            <script>
+                $("#IMD{{m.imdbID}}").ready(function () {
+                  getImgFromServer("{{m.imdbID}}","IMD{{m.imdbID}},small");
+                });
+              </script>
+          <img id="IMD{{ m.imdbID}}" class="card-img-top" src="{m.poster}" alt="" />
+          
+          <b>
+            <p class="text-center" id="TXT{{ m.imdbID}}" style="position: absolute; bottom: 1%; width: 100%; opacity: 0;">{{ m.movie_title }}</p>
+          </b>
+          </div>
       {% endfor %}
     </div>
     {% for m in movies.movies %}
@@ -107,7 +111,7 @@
                           getImgFromServer("{{m.imdbID}}","mod{{m.imdbID}},big");
                         });
                     </script>
-                  <img id="mod{{m.imdbID}}" src="">
+                  <img class="w3-grayscale" id="mod{{m.imdbID}}" src="">
                 </div>
                 <div class="col-md-7">
                   <div class="row">
@@ -179,7 +183,19 @@
     function getImgFromServer(imdbID,imgID,size) {
       $.get("/getPoster", { imdbID: imdbID,size:size }, function (data) {
         $("#" + imgID).attr("src", data);
-        console.log(data);
+        $("#" + imgID).hover(function () {
+          
+          $(this).css("-webkit-filter", "blur(3.5px) grayscale(75%)");
+          
+          $("#TXT" + imdbID).css("opacity","1")
+        
+        }, 
+        function () {
+          $(this).css("-webkit-filter", "blur(0) grayscale(0%)");
+            
+            $("#TXT" + imdbID).css("opacity","0")
+        })
+        //console.log(data);
       });
     }
   </script>
