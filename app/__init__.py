@@ -19,7 +19,7 @@ if app.config["UPLOAD_TO_RECOMENDATION"]:
     k = requests.post("https://recomendation-service-es.azurewebsites.net/Nuno19/Recomendation_Service/1.0.0/"+"setClusterNumber",{"k":10})
     print(k.text)
     
-    file = open("random250.tsv","r",encoding="utf-8")
+    file = open("final_metadata.tsv","r",encoding="utf-8")
     send = requests.post("https://recomendation-service-es.azurewebsites.net/Nuno19/Recomendation_Service/1.0.0/"+"loadItem",{"itemList":file.read()})
     print(send.text)
     update = requests.post("https://recomendation-service-es.azurewebsites.net/Nuno19/Recomendation_Service/1.0.0/"+"computeKMeans")
