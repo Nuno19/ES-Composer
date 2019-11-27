@@ -22,7 +22,7 @@ class User(db.Model):
 
 class MovieLike(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), unique=True)
+    title = db.Column(db.String(200), unique=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):

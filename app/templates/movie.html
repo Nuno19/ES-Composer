@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Buy tickets</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+</head>
+
+<body  style="background-color:#0099FF" >
+
+<div class="container">
+  <div class="row">
+    <div class="col-6">
+
+<h3> Title: {{ movie_title }}  </h3>
+<!-- <h5> Description: {{ movie.description }} </h5> -->
+<p></p>
+
+<form>
+
+
+  <div class="form-group">
+    <label for="cinema">Select date</label>
+      <input type="date" name="day">
+  </div>
+	
+  <div class="form-group">
+    <label for="cinema">Select cinema</label>
+    <select class="form-control" id="cinema">
+      <option>Aveiro 1</option>
+      <option>Aveiro 2</option>
+      <option>Aveiro 3</option>
+      <option>Coibmra 1</option>
+      <option>Coibmra 2</option>
+    </select>
+  </div>
+
+<table>
+	    <tr>
+	    	<td>
+				<div class="form-group" id="seat">
+			    <label for="seat">Select seat</label>
+			    <select class="form-control" id="seat_select">
+			      <option>1</option>
+			      <option>2</option>
+			      <option>3</option>
+			      <option>4</option>
+			      <option>5</option>
+			    </select>
+			  </div>
+	    	</td>
+		</tr>
+		<tr>
+			<td>
+				<button type="" id="new_seat">Add seat</button>
+			</td>
+		</tr>
+</table>
+
+		<script type="text/javascript">
+			$('#new_seat').on('click',function(e){
+		    var $this = $(this);
+		    var $newRow = $this.closest('table').find('tr:first').clone();
+		    $newRow.find(':div').val('');
+		    $newRow.insertBefore($this.parent());
+				});
+		</script>
+
+        <p></p>
+        <label for="cinema">Price (€)</label>
+        <input type="text" id="result"/ value="10">
+        <p></p>
+        <button type="submit">Buy</button>
+
+
+</form method="post" target="">	
+
+
+    </div>
+    <div class="col-6">
+
+    </div>
+  </div>
+</div>
+<table>
+    <tr>
+        <td>
+        	<select class="form-control" name="item_name" id="seat_select">
+			      <option>1</option>
+			      <option>2</option>
+			      <option>3</option>
+			      <option>4</option>
+			      <option>5</option>
+			    </select>
+
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2" id="add">+ Add new item</td>
+    </tr>
+</table>
+<script type="text/javascript">
+	$('#add').on('click',function(e){
+    var $this = $(this);
+    var $newRow = $this.closest('table').find('tr:first').clone();
+    $newRow.find(':select').val('');
+    $newRow.insertBefore($this.parent());
+		});
+</script>
+<p>presenetation: idea
+technology
+sell you service
+</p>
+</body>
+

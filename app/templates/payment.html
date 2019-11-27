@@ -115,14 +115,14 @@ body {
 <div class="center" style="align-content: center;">
     <h1 style="font-size: 100px; text-align: center;"> Payment </h1>
 </div>
+
 <div class="login-page">
   <div class="form" style="text-align: left">
-            <form action="{{ url_for('payment')}}" method="get">
+            <form action="" method="post" target="">
 
-
+      <p>http://localhost:8040/api/payment</p>
       <p>Movie: {{ lion_king }} Lion King</p>
       <p>Seats: {{ choosen_seats }} 4D, 5D</p>
-      <input type="number" name="amount "placeholder="amount"/>
       <p>Price: {{ price }} 45€</p>
             <button type="submit">Pay with PayON</button>
             </form>

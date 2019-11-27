@@ -35,6 +35,9 @@
             <a class="nav-link" href="/facebookRecomended">ForYou</a>
           </li>
           <li class="nav-item">
+            <a class="nav-link" href="/payment">PAY</a>
+          </li>
+          <li class="nav-item">
             <form class="form-inline" action="/search" method="GET">
               <input class="form-control" type="text" name="query" id="query" placeholder="Search Keyword..." />
               <input class="btn btn-primary" type="submit" />
@@ -163,6 +166,10 @@
      		</div>
 
           <div class="modal-footer">
+          <form action="https://127.0.0.1/movie">
+                        <a type="button" target="_blank" class="btn btn-secondary" href="/movie/{{m.movie_title}}" >Go to movie... {{ m.movie_title }}</a>
+                        
+          </form>
             <button type="button" class="btn btn-secondary" data-dismiss="modal">
               Close
             </button>

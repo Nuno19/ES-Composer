@@ -107,6 +107,24 @@ def getFromFacebookLikes():
         login = "me" not in session
     return render_template("searchFacebook.html", list=toRet,login=login)
 
+
+@app.route('/movie/<movie_title>',methods=['GET'])
+def movie(movie_title):
+    if request.method == 'GET':
+        movie_details = {}
+        movie_details["title"] = "PayON"
+        movie_details["description"] = "PayOn is a payment service for xxx.."
+    return render_template("movie.html", movie=movie_details, movie_title=movie_title)
+
+
+@app.route('/movie',methods=['GET'])
+def movie2():
+    if request.method == 'GET':
+        movie_details = {}
+        movie_details["title"] = "PayON"
+        movie_details["description"] = "PayON"
+    return render_template("movie.html", movie=movie_details)
+
 @app.route('/search',methods=['GET'])
 def searchPack():
     if request.method == 'GET':
@@ -120,28 +138,6 @@ def searchPack():
         pack = [json.loads(f["data"]) for f in list ]
     return render_template("index.html", list=[pack[:20]])
         
-
-
-@app.route('/payment',methods=['GET','POST'])
-def payment():
-    if request.method == 'POST':
-        # url = "http://localhost:8040/payment"
-        url = "http://localhost:8040/api/payment"
-        params = {
-            # "amount": request.form['amount'],
-            "client": "client data",
-            "amount": "50e"
-        }
-        # data = {"eventType": "AAS_PORTAL_START", "data": {"uid": "hfe3hf45huf33545", "aid": "1", "vid": "1"}}
-        # requests.post(url, params=params)
-        # requests.post(url, params=params)
-        requests.get(url, params=params)
-    else:
-        data = requests.get("http://localhost:8040/api/payment")
-        print(data.text)
-        return render_template("payment.html")
-
-
 
 
 @app.route('/getPoster',methods=['GET'])
@@ -168,3 +164,29 @@ def getPoster():
     
   #  print("https://image.tmdb.org/t/p/w300"+ data["poster_path"])
     return "https://image.tmdb.org/t/p/w300"+ data["poster_path"]
+
+
+@app.route('/payment',methods=['GET','POST'])
+def payment():
+    if request.method == 'POST':
+        # url = "http://localhost:8040/payment"
+        url = "http://localhost:8040/api/payment"
+        data = {
+            #         "amount": request.form['amount'],
+            # "MOVIETITLE": request.form['MOVIETITLE'],
+            # "MOVIEPRICE": request.form['MOVIEPRICE']
+            # "amount": request.form['amount'],
+            "amount":"50",
+            "MOVIETITLE": "movtit",
+            "MOVIEPRICE": "30",
+            "CALLER": "https://127.0.0.1:8000",
+        }
+
+        data = requests.post(url,json=data)
+        print(data.text)
+        print(data)
+        return redirect("http://localhost:8040")
+    else:
+        data = requests.get("http://localhost:8040/api/payment")
+        print(data.text)
+        return render_template("payment.html")
