@@ -8,113 +8,153 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-
 </head>
 
 <body  style="background-color:#0099FF" >
+  <script>
 
-<div class="container">
-  <div class="row">
-    <div class="col-6">
+    var index = 2;
+    $(document).ready(function () {
+      $('select[name="day"]').change(function(){
+        document.getElementById("cinema").style.display = "inline";
+      });
 
-<h3> Title: {{ movie_title }}  </h3>
-<!-- <h5> Description: {{ movie.description }} </h5> -->
-<p></p>
+      $('select[name="cinema"]').change(function(){
+        console.log($(this).val())
+        document.getElementById("seat_select").style.display = "inline";
+        $.get("/movie/<{{movie_title}}>", { cinema: $("#cinema").val(), movie: "{{ movie_title }}"}, function (data) {
+          l = data["list"];
+          $("#seat_select").find("option").remove()
+          console.log($("#seat_select"))
+          $("#seat_select").append(new Option("---", "---"));
+          for (var i = 0; i < l.length; i++){
+            $("#seat_select").append(new Option(l[i], l[i]));
+          }
+        });
+      });
 
-<form>
+      $('select[name="seat_select"]').change(function(){
+        document.getElementById("new_seat").style.display = "inline";
+        document.getElementById("submit").style.display = "inline";
+        console.log($(this).val())
+        console.log($("#cinema").val())
+        console.log($("#date").val())
+        console.log("{{movie_title}}")
+        console.log(window.location)
+      });
 
+      $('#new_seat').on('click',function(e){
+        if (index > 9){
+          document.getElementById("new_seat").style.display = "none";
+        }
+        console.log($(this).val())
+        document.getElementById("seat_select" + index).style.display = "inline";
+        console.log($("#seat_select" + index))
+        $("#seat_select" + index).append(new Option("---", "---"));
+        for (var i = 0; i < l.length; i++){
+          $("#seat_select" + index).append(new Option(l[i], l[i]));
+        }
+        index += 1;
+      });
+    });
+  </script>
+  <div class="container">
+    <div class="row">
+      <div class="col-6">
 
-  <div class="form-group">
-    <label for="cinema">Select date</label>
-      <input type="date" name="day">
-  </div>
-	
-  <div class="form-group">
-    <label for="cinema">Select cinema</label>
-    <select class="form-control" id="cinema">
-      <option>Aveiro 1</option>
-      <option>Aveiro 2</option>
-      <option>Aveiro 3</option>
-      <option>Coibmra 1</option>
-      <option>Coibmra 2</option>
-    </select>
-  </div>
+        <h3> Title: {{ movie_title }}  </h3>
+        <!-- <h5> Description: {{ movie.description }} </h5> -->
+        <p></p>
 
-<table>
-	    <tr>
-	    	<td>
-				<div class="form-group" id="seat">
-			    <label for="seat">Select seat</label>
-			    <select class="form-control" id="seat_select">
-			      <option>1</option>
-			      <option>2</option>
-			      <option>3</option>
-			      <option>4</option>
-			      <option>5</option>
-			    </select>
-			  </div>
-	    	</td>
-		</tr>
-		<tr>
-			<td>
-				<button type="" id="new_seat">Add seat</button>
-			</td>
-		</tr>
-</table>
+        <form action="send-form" method="post">
 
-		<script type="text/javascript">
-			$('#new_seat').on('click',function(e){
-		    var $this = $(this);
-		    var $newRow = $this.closest('table').find('tr:first').clone();
-		    $newRow.find(':div').val('');
-		    $newRow.insertBefore($this.parent());
-				});
-		</script>
+          <input id="movie_title" name="movie_title" value="{{ movie_title }}" style="display: none;">
 
+          <div class="form-group">
+            <label for="cinema">Select date</label>
+            <input type="date" name="day" id="date">
+          </div>
+    
+          <div class="form-group">
+            <label for="cinema">Select cinema</label>
+            <select class="form-control" id="cinema" name="cinema">
+              <option selected>---</option>
+              {% for cinema in cinemas %}
+                {% if selected_cinema == cinema %}
+                  <option value="{{ cinema }}" selected>{{ cinema }}</option>
+                {% else %}
+                  <option value="{{ cinema }}">{{ cinema }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+
+          <table>
+            <tr>
+              <td>
+                <div class="form-group" id="seat">
+                  <label for="seat">Select seat</label>
+                  <select class="form-control" id="seat_select" name="seat_select" style="display: none;">
+                  </select>
+                  <select class="form-control" id="seat_select2" name="seat_select2" style="display: none;">
+                  </select>
+                  <select class="form-control" id="seat_select3" name="seat_select3" style="display: none;">
+                  </select>
+                  <select class="form-control" id="seat_select4" name="seat_select4" style="display: none;">
+                  </select>
+                  <select class="form-control" id="seat_select5" name="seat_select5" style="display: none;">
+                  </select>
+                  <select class="form-control" id="seat_select6" name="seat_select6" style="display: none;">
+                  </select>
+                  <select class="form-control" id="seat_select7" name="seat_select7" style="display: none;">
+                  </select>
+                  <select class="form-control" id="seat_select8" name="seat_select8" style="display: none;">
+                  </select>
+                  <select class="form-control" id="seat_select9" name="seat_select9" style="display: none;">
+                  </select>
+                  <select class="form-control" id="seat_select10" name="seat_select10" style="display: none;">
+                  </select>
+                </div>
+              </td>
+            </tr>
+          </table>
         <p></p>
         <label for="cinema">Price (€)</label>
-        <input type="text" id="result"/ value="10">
+        <input type="text" id="result"/ value="10" disabled>
         <p></p>
-        <button type="submit">Buy</button>
-
-
-</form method="post" target="">	
-
-
+        <button type="submit" id="submit" name="submit" style="display: none;">Buy</button>
+      </form>	
+      
+      <button name="new_seat" id="new_seat" style="display: none;">Add seat</button>
     </div>
     <div class="col-6">
 
     </div>
-  </div>
-</div>
-<table>
-    <tr>
+    <table>
+      <tr>
         <td>
-        	<select class="form-control" name="item_name" id="seat_select">
-			      <option>1</option>
-			      <option>2</option>
-			      <option>3</option>
-			      <option>4</option>
-			      <option>5</option>
-			    </select>
-
+          <select class="form-control" name="item_name" id="seat_select">
+          </select>
         </td>
-    </tr>
-    <tr>
+      </tr>
+      <tr>
         <td colspan="2" id="add">+ Add new item</td>
-    </tr>
-</table>
-<script type="text/javascript">
-	$('#add').on('click',function(e){
-    var $this = $(this);
-    var $newRow = $this.closest('table').find('tr:first').clone();
-    $newRow.find(':select').val('');
-    $newRow.insertBefore($this.parent());
-		});
-</script>
-<p>presenetation: idea
-technology
-sell you service
-</p>
+      </tr>
+    </table>
+  </div>
+
+    <script type="text/javascript">
+      $('#add').on('click',function(e){
+        var $this = $(this);
+        var $newRow = $this.closest('table').find('tr:first').clone();
+        $newRow.find(':select').val('');
+        $newRow.insertBefore($this.parent());
+        });
+    </script>
+
+  <p>presenetation: idea
+  technology
+  sell you service
+  </p>
 </body>
 

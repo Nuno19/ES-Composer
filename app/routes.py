@@ -6,6 +6,9 @@ import requests
 import json
 from random import shuffle
 from rauth.service import OAuth2Service
+from urllib.parse import unquote
+import urllib.request
+
 
 
 REC_URL = app.config["BASE_REC_URL"]
@@ -108,13 +111,53 @@ def getFromFacebookLikes():
     return render_template("searchFacebook.html", list=toRet,login=login)
 
 
-@app.route('/movie/<movie_title>',methods=['GET'])
+@app.route('/movie/<movie_title>',methods=['GET', 'POST'])
 def movie(movie_title):
+    if request.method == 'POST':
+        if request.form != None:
+            print(request.form)
+            seat = unquote(request.form.get("seat_select"))
+            date = unquote(request.form.get("day"))
+            cinema = unquote(request.form.get("cinema"))
+            name = unquote(request.form.get("movie_title"))
+            print(seat)
+            print(date)
+            print(cinema)
+            return {'date': date, 'asset': {'location': cinema, 'seat': seat, 'name': name} }
+            
     if request.method == 'GET':
         movie_details = {}
         movie_details["title"] = "PayON"
         movie_details["description"] = "PayOn is a payment service for xxx.."
-    return render_template("movie.html", movie=movie_details, movie_title=movie_title)
+
+        movies = requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/asset?assetKey=name")
+        movies = json.loads(movies.text)
+
+        cinemas = requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/asset?assetId={\"name\":\"" + movie_title + "\"}&assetKey=location")
+        cinemas = json.loads(cinemas.text)
+
+        select = request.args.get("cinema")
+        #print(select)
+
+        seats = []
+
+        if select != None:
+            
+            seats = requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/asset?assetId={\"name\":\"" + "2012" + "\", \"location\":\"" + select + "\"}&assetKey=seat")
+            seats = json.loads(seats.text)
+
+            seats_taken = requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking?bookingId={\"name\":\"" + "2012" + "\", \"location\":\"" + select + "\"}&bookingKey=seat")
+            seats_taken = json.loads(seats_taken.text)
+            print(seats_taken)
+
+            for seat in seats_taken:
+                if seat in seats:
+                    seats.remove(seat)
+            d = dict()
+            d["list"] = seats
+            return d
+            
+        return render_template('movie.html', movie=movie_details, movie_title=movie_title, cinemas=cinemas)
 
 
 @app.route('/movie',methods=['GET'])
