@@ -15,25 +15,27 @@
 
     var index = 2;
     $(document).ready(function () {
-      $('select[name="day"]').change(function(){
+      $('input[name="day"]').on('change.datepicker', function() {
         document.getElementById("cinema").style.display = "inline";
+        document.getElementById("select_cinema_text").style.display = "inline";    
       });
 
       $('select[name="cinema"]').change(function(){
         console.log($(this).val())
-        document.getElementById("seat_select").style.display = "inline";
-        $.get("/movie/<{{movie_title}}>", { cinema: $("#cinema").val(), movie: "{{ movie_title }}"}, function (data) {
+        document.getElementById("seat_select1").style.display = "inline";
+        document.getElementById("select_seat_text").style.display = "inline";
+        $.get("/seats", { cinema: $("#cinema").val(), movie_title: "{{ movie_title }}"}, function (data) {
           l = data["list"];
-          $("#seat_select").find("option").remove()
-          console.log($("#seat_select"))
-          $("#seat_select").append(new Option("---", "---"));
+          $("#seat_select1").find("option").remove()
+          console.log($("#seat_select1"))
+          $("#seat_select1").append(new Option("---", "---"));
           for (var i = 0; i < l.length; i++){
-            $("#seat_select").append(new Option(l[i], l[i]));
+            $("#seat_select1").append(new Option(l[i], l[i]));
           }
         });
       });
 
-      $('select[name="seat_select"]').change(function(){
+      $('select[name="seat_select1"]').change(function(){
         document.getElementById("new_seat").style.display = "inline";
         document.getElementById("submit").style.display = "inline";
         console.log($(this).val())
@@ -76,8 +78,8 @@
           </div>
     
           <div class="form-group">
-            <label for="cinema">Select cinema</label>
-            <select class="form-control" id="cinema" name="cinema">
+            <label for="cinema" id="select_cinema_text" style="display: none;">Select cinema</label>
+            <select class="form-control" id="cinema" name="cinema" style="display: none;">
               <option selected>---</option>
               {% for cinema in cinemas %}
                 {% if selected_cinema == cinema %}
@@ -93,8 +95,8 @@
             <tr>
               <td>
                 <div class="form-group" id="seat">
-                  <label for="seat">Select seat</label>
-                  <select class="form-control" id="seat_select" name="seat_select" style="display: none;">
+                  <label for="seat" id="select_seat_text" style="display: none;">Select seat</label>
+                  <select class="form-control" id="seat_select1" name="seat_select1" style="display: none;">
                   </select>
                   <select class="form-control" id="seat_select2" name="seat_select2" style="display: none;">
                   </select>

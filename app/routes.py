@@ -110,20 +110,63 @@ def getFromFacebookLikes():
         login = "me" not in session
     return render_template("searchFacebook.html", list=toRet,login=login)
 
+@app.route('/booking_confirmation', methods=["GET", "POST"])
+def booking_confirmation(status):
+    if request.method == "GET":
+        print(request.args)
+        if request.args.get("status") == 200:
+            message = {"200": 'ok'}
+        else:
+            for seat in session['seat']:
+                requests.delete("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking",
+                json = {'userId': session["id"],
+                        'bookingDate': session['date'] + "T21:00:00Z",
+                        'asset': {'name': session['name'],
+                            'location': session['location'], 
+                            'seat': seat
+                        }
+                })
+            message = {"500": 'not ok'}
+        print(message)
+        return redirect(url_for('getRecomended'))
+    return "None"
+
 
 @app.route('/movie/<movie_title>',methods=['GET', 'POST'])
 def movie(movie_title):
+    
+    session['name'] = movie_title
     if request.method == 'POST':
         if request.form != None:
+            if "id" not in session:
+                flash("Not Logged in!")
+                return render_template("index.html")
+                
             print(request.form)
-            seat = unquote(request.form.get("seat_select"))
             date = unquote(request.form.get("day"))
             cinema = unquote(request.form.get("cinema"))
             name = unquote(request.form.get("movie_title"))
-            print(seat)
-            print(date)
-            print(cinema)
-            return {'date': date, 'asset': {'location': cinema, 'seat': seat, 'name': name} }
+            session['seat'] = []
+
+            for seat in request.form:
+                if "seat_select" in seat:
+                    if requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking?bookingId={\"location\":\"" + cinema + "\", \"name\":\"" + name + "\", \"seat\":\"" + seat + "\"}").content == b'[]\n':
+                        print("a")
+                        requests.post("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking",
+                        json = {'userId': session["id"],
+                                'bookingDate': date + "T21:00:00Z",
+                                'asset': {'name': name,
+                                    'location': cinema, 
+                                    'seat': unquote(request.form.get(seat))
+                                }
+                        })
+                        session['seat'].append(unquote(request.form.get(seat)))
+            
+            session['date'] = date
+            session['name'] = name
+            session['location'] = cinema
+            
+            return redirect(url_for("payment", json={'name': name, 'seat': len(session['seat'])}), code=307)
             
     if request.method == 'GET':
         movie_details = {}
@@ -138,26 +181,31 @@ def movie(movie_title):
 
         select = request.args.get("cinema")
         #print(select)
-
-        seats = []
-
-        if select != None:
-            
-            seats = requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/asset?assetId={\"name\":\"" + "2012" + "\", \"location\":\"" + select + "\"}&assetKey=seat")
-            seats = json.loads(seats.text)
-
-            seats_taken = requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking?bookingId={\"name\":\"" + "2012" + "\", \"location\":\"" + select + "\"}&bookingKey=seat")
-            seats_taken = json.loads(seats_taken.text)
-            print(seats_taken)
-
-            for seat in seats_taken:
-                if seat in seats:
-                    seats.remove(seat)
-            d = dict()
-            d["list"] = seats
-            return d
             
         return render_template('movie.html', movie=movie_details, movie_title=movie_title, cinemas=cinemas)
+
+
+@app.route('/seats',methods=['GET', 'POST'])
+def seats():
+    if request.method == "GET":
+        seats = []
+
+        cinema = unquote(request.args.get("cinema"))
+        movie_title = unquote(request.args.get("movie_title"))
+
+        seats = requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/asset?assetId={\"name\":\"" + movie_title + "\", \"location\":\"" + cinema + "\"}&assetKey=seat")
+        seats = json.loads(seats.text)
+
+        seats_taken = requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking?bookingId={\"name\":\"" + movie_title + "\", \"location\":\"" + cinema + "\"}&bookingKey=seat")
+        seats_taken = json.loads(seats_taken.text)
+        print(seats_taken)
+
+        for seat in seats_taken:
+            if seat in seats:
+                seats.remove(seat)
+        d = dict()
+        d["list"] = seats
+        return d
 
 
 @app.route('/movie',methods=['GET'])
@@ -219,17 +267,13 @@ def payment():
             # "MOVIETITLE": request.form['MOVIETITLE'],
             # "MOVIEPRICE": request.form['MOVIEPRICE']
             # "amount": request.form['amount'],
-            "amount":"50",
-            "MOVIETITLE": "movtit",
-            "MOVIEPRICE": "30",
-            "CALLER": "https://127.0.0.1:8000",
+            "amount":"7",
+            "MOVIETITLE": session['name'],
+            "MOVIEPRICE": len(session['seat'])*6,
+            "CALLER": "https://127.0.0.1:8000/booking_confirmation",
         }
 
         data = requests.post(url,json=data)
         print(data.text)
-        print(data)
-        return redirect("http://localhost:8040")
-    else:
-        data = requests.get("http://localhost:8040/api/payment")
-        print(data.text)
-        return render_template("payment.html")
+        print(data.status_code)
+        return redirect('http://localhost:8040')
