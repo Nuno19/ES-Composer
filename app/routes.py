@@ -150,8 +150,7 @@ def movie(movie_title):
 
             for seat in request.form:
                 if "seat_select" in seat:
-                    if requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking?bookingId={\"location\":\"" + cinema + "\", \"name\":\"" + name + "\", \"seat\":\"" + seat + "\"}").content == b'[]\n':
-                        print("a")
+                    if requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking?bookingId={\"location\":\"" + cinema + "\", \"name\":\"" + name + "\", \"seat\":\"" + unquote(request.form.get(seat)) + "\"}").content == b'[]\n':
                         requests.post("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking",
                         json = {'userId': session["id"],
                                 'bookingDate': date + ":00Z",

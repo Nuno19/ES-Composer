@@ -9,6 +9,9 @@ app = Flask(__name__)
 app.config.from_object(Config)
 db = SQLAlchemy(app)
 
+from app import routes, models
+db.create_all()
+
 cinemas = ["Glicínias Plaza", "Fórum Coimbra", "Fórum Algarve"]#, "Norte Shopping", "Mar Shopping", "Palácio do Gelo"]
 seatRows = ['A', 'B', 'C', 'D']
 numberAssets = 0
