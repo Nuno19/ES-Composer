@@ -154,7 +154,7 @@ def movie(movie_title):
                         print("a")
                         requests.post("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking",
                         json = {'userId': session["id"],
-                                'bookingDate': date + "T21:00:00Z",
+                                'bookingDate': date + ":00Z",
                                 'asset': {'name': name,
                                     'location': cinema, 
                                     'seat': unquote(request.form.get(seat))
@@ -162,7 +162,7 @@ def movie(movie_title):
                         })
                         session['seat'].append(unquote(request.form.get(seat)))
             
-            session['date'] = date
+            session['date'] = date + ":00Z"
             session['name'] = name
             session['location'] = cinema
             
