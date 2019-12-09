@@ -7,22 +7,30 @@
   <meta name="description" content="" />
   <meta name="author" content="" />
 
-  <title>ES Recomender - For You </title>
-  <!-- Custum js Functions-->
+  <title>ES Recomender - Search</title>
+
+  <!-- Custom js Functions-->
   <script src="{{ url_for('static',filename='vendor/functions.js') }}"></script>
   <!-- Bootstrap core CSS -->
   <link href="{{ url_for('static',filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet" />
+  <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
   <script src="{{ url_for('static',filename='vendor/jquery/jquery.min.js') }}"></script>
   <!-- Custom styles for this template -->
   <link href="{{ url_for('static',filename='css/heroic-features.css') }}" rel="stylesheet" />
   <link href="{{ url_for('static',filename='css/flat-example.css') }}" rel="stylesheet" />
 </head>
 
-<body>
+<body >
+
   <!-- Navigation -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
     <div class="container-fluid">
-      <a class=" netflixLogo navbar-brand" href="/recomended">ES Recommender</a>
+      
+      <a class=" netflixLogo navbar-brand" href="/recomended">
+       <img style="height: 50px;" class=" netflixLogo navbar-brand" src="{{url_for('static',filename='images/logo.png')}}">
+       
+        ES Recommender
+      </a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive"
         aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -31,14 +39,14 @@
         <div class="navbar-collapse collapse w-100 order-1 order-md-0 dual-collapse2">
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item">
-                  <a class="nav-link" href="#">Home
-                  </a>
+                  <a class="nav-link" href="/recomended">Home</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="/facebookRecomended">ForYou</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="/watched">Watched</a>
+                  <a class="nav-link" href="/watched">Watched
+                  </a>
                 </li>
               </ul>
         </div>
@@ -67,29 +75,18 @@
     </div>
   </nav>
 
+
+  
+  <div style="margin-top:50px;" id='content-main' class='container'></div>
+  
   <!-- Page Content -->
-
-
-  <div class="wrapper">
-
-  {% for aler in get_flashed_messages() %}
-  <div class="alert alert-info">
-    <button type="button" class="close" data-dismiss="alert">
-      &times;
-    </button>
-    {{ aler }}
-  </div>
-  {% endfor %}
-
-  <section style="margin: 20px;" class="main-container">
-      {% for movies in list %}
-      <div class="location" id="home">
-        <h3> <small>Because you liked:</small> {{movies.packName}} </h3>
-        <!--<a style=" top: 40%; right: 30%; position: absolute;" href="#" class="btn btn-primary">Buy Now</a>-->
-      </div>
+  <section class="main-container">
+    <!-- Jumbotron Header -->
+    <!-- Page Features -->
+    <h3> <small>Results for: </small> {{query}} </h3>
     <div class="box">
-      {% for m in movies.movies %}
-      <div style="cursor: pointer;" onclick="window.location='{{ url_for( "movie" , movie_title=m.movie_title) }}';" class="card h-100 ">
+      {% for m in movies %}
+        <div style="cursor: pointer;" onclick="window.location='{{ url_for( "movie" , movie_title=m.movie_title) }}';" class="card h-100 ">
           <script>
             $("#IMD{{m.imdbID}}").ready(function () {
               getImgFromServer("{{m.imdbID}}","IMD","small");
@@ -111,15 +108,11 @@
           
             <img id="IMD{{ m.imdbID}}" class="card-img-top" src="" alt="" />
             
-            <b><p class="text-center" id="TXT{{ m.imdbID}}" style="position: absolute; bottom: 1%; width: 99%; opacity: 0;text-shadow: 1px 1px #222222,-1px -1px #000000;">{{ m.movie_title }}</p></b>
+            <b><p class="text-center" id="TXT{{ m.imdbID}}" style="position: absolute; bottom: 1%; width: 100%; opacity: 0;text-shadow: 1px 1px #222222,-1px -1px #000000;">{{ m.movie_title }}</p></b>
         </div>
       {% endfor %}
     </div>
-   {% endfor %}
-  </div>
-    <!-- Page Features -->
-    
-  </div>
+      </section>
   <!-- /.container -->
   <!--
   
@@ -132,7 +125,7 @@
   <!-- Bootstrap core JavaScript -->
 
   <script src="{{ url_for('static',filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-  
+
 </body>
 
 </html>

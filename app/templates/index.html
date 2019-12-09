@@ -8,70 +8,162 @@
   <meta name="author" content="" />
 
   <title>ES Recomender</title>
+   <!-- Custom js Functions-->
+   <script src="{{ url_for('static',filename='vendor/functions.js') }}"></script>
   <!-- Bootstrap core CSS -->
   <link href="{{ url_for('static',filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet" />
+  <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
   <script src="{{ url_for('static',filename='vendor/jquery/jquery.min.js') }}"></script>
   <!-- Custom styles for this template -->
   <link href="{{ url_for('static',filename='css/heroic-features.css') }}" rel="stylesheet" />
   <link href="{{ url_for('static',filename='css/flat-example.css') }}" rel="stylesheet" />
+
+  <link rel="icon" href="{{url_for('static',filename='images/logo.png')}}">
 </head>
 
-<body>
+<body >
   <!-- Navigation -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
-    <div class="container">
-      <a class=" netflixLogo navbar-brand" href="/recomended">ES Recommender</a>
+    <div class="container-fluid">
+      
+      <a class=" netflixLogo navbar-brand" href="/recomended">
+       <img style="height: 50px;" class=" netflixLogo navbar-brand" src="{{url_for('static',filename='images/logo.png')}}">
+       
+        ES Recommender
+      </a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive"
         aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
-      <div class="collapse navbar-collapse" id="navbarResponsive">
+      <div  class="collapse navbar-collapse" id="navbarResponsive">
+        <div class="navbar-collapse collapse w-100 order-1 order-md-0 dual-collapse2">
+          <ul class="navbar-nav ml-auto">
+            <li class="nav-item active">
+              <a class="nav-link" href="#">Home
+                <span class="sr-only">(current)</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/facebookRecomended">ForYou</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/watched">Watched</a>
+            </li>
+          </ul>
+        </div>
+        <div class="navbar-collapse collapse w-100 order-2 dual-collapse2">
         <ul class="navbar-nav ml-auto">
-          <li class="nav-item active">
-            <a class="nav-link" href="#">Home
-              <span class="sr-only">(current)</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/facebookRecomended">ForYou</a>
-          </li>
-          <li class="nav-item">
-            <form class="form-inline" action="/search" method="GET">
-              <input class="form-control" type="text" name="query" id="query" placeholder="Search Keyword..." />
-              <input class="btn btn-primary" type="submit" />
-            </form>
-          </li>
+            <li class="nav-item">
+                <form  class="form-inline my-2 my-lg-0 form-group has-feedback" action="/search" method="GET">
+                  <input onfocusout="showSpan()" onfocus="hideSpan()" style="position: relative; background-color: #000000;border: 2px solid #222222;border-radius: 25px;" class="form-control mr-sm-2" type="search" placeholder="Search..." aria-label="Search" type="text" name="query" id="query">
+                  <span id="searchSpan" style="position: relative; left:-15%; color: #7a7a7ac2;" class="fa fa-search form-control-feedback"></span>
+                </form>
+              </li>
           {% if login %}
-          <li class="nav-item">
-            <a class="nav-link" href="/facebook/login">Login</a>
-          </li>
+            <li class="nav-item">
+              <a href="/facebook/login"><button  class="loginBtn loginBtn--facebook">
+                  Login
+              </button></a>
+            </li>
+          {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="/logout">Logout</a>
+            </li>
           {% endif %}
         </ul>
+      </div>
       </div>
     </div>
   </nav>
 
+
+  
+  <div style="margin-top:15px;" id='content-main' class='container'>
+    
+  </div>
+  {% if releventMovies %}
+  <div style="margin-top:50px;"><br/></div>
+  
+  <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+    <ol class="carousel-indicators">
+      <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+      <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+      <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+    </ol>
+    <div class="carousel-inner">
+    {% for relevent in releventMovies %}
+
+      <script>
+          $(".jumbotron-fluid").ready(function () {
+            getBackDrop("{{ relevent.imdbID }}","JT{{relevent.imdbID}}");
+          });
+        </script>
+        {% if loop.index == 1 %}
+        <div class="carousel-item active">
+        {% else %}
+        <div class="carousel-item">
+        {% endif %}
+        <div class="bpad"></div>
+        <div style="width: 100%;">
+          <div id="JT{{relevent.imdbID}}" class="jumbotron-fluid">
+            <div class="overlay"></div>
+            <div class="container">
+                <div class="row">
+                    
+                    <div class="col-md-9">
+                      <div class="row">
+                      
+                        <a style="color: azure;" href= {{ url_for('movie', movie_title=relevent.movie_title) }} ><h1 class="display-4">{{relevent.movie_title}}</h1></a>
+                        
+                      </div>
+                    <div class="col-md-12 col-lg-12">
+                        <div class="row">
+                            <h4 class="">{{relevent.title_year}}</h4>
+                        </div>
+                        <div style="margin-top:30px ;" class="row">
+                          
+                          {% for g in relevent.genres %}
+                            <span style="padding-left:15px ;" ><a style="color: azure;" href= {{ url_for('searchPack', query=g) }}> {{g}}</a></span>
+                          {% endfor %}
+                        </div>
+                        
+                        <div style="padding-top:30px" class="row">
+                          
+                          <div class="col-md-3"><a style="color: azure;" href= {{ url_for('searchPack', query=relevent.actor_1_name) }} >{{relevent.actor_1_name}}</a></div>
+                          <div class="col-md-3"><a style="color: azure;" href= {{ url_for('searchPack', query=relevent.actor_2_name) }} >{{relevent.actor_2_name}}</a></div>
+                          <div class="col-md-3"><a style="color: azure;" href= {{ url_for('searchPack', query=relevent.actor_3_name) }}>{{relevent.actor_3_name}}</a></div>
+                        </div>
+                      
+                      </div>
+                    </div>
+                    <div style="margin-top: 30px;margin-bottom: 30px;" class="col-md-3">
+                        <script>
+                            $(document).ready(function () {
+                              getImgFromServer("{{relevent.imdbID}}","rev","medium");
+                            });
+                        </script>
+                      <img style="cursor: pointer;" onclick="window.location='{{ url_for( "movie" , movie_title=relevent.movie_title) }}';" id="rev{{relevent.imdbID}}" src="">
+                    </div>
+                  </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+      </div>
+      <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="sr-only">Previous</span>
+        </a>
+        <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="sr-only">Next</span>
+        </a>
+    </div>
+    {% endif %}
   <!-- Page Content -->
   <section class="main-container">
     <!-- Jumbotron Header -->
-    <script>
-      $(".jumbotron").ready(function () {
-        getBackDrop("{{ relevent.imdbID }}");
-      });
-    </script>
-    <div class="bpad">
-      </div>
-      <div class="container">
-      <div class="jumbotron jumbotron-fluid">
-        <div class="bg"></div>
-        <h1>{{relevent.movie_title}}</h1>
-        <p>#</p>
-      </div>
-      </div>
-  </div>
-  
-    
-
 
     {% for aler in get_flashed_messages() %}
     <div class="alert alert-info">
@@ -86,23 +178,34 @@
    
         <div class="box">
             {% for m in movies %}
-             
-              <div data-toggle="modal" data-target="#{{ m.imdbID }}" class="card h-100 ">
-                  <script>
-                      $("#IMD{{m.imdbID}}").ready(function () {
-                        getImgFromServer("{{m.imdbID}}","IMD{{m.imdbID}},small");
-                      });
-                    </script>
-                <img id="IMD{{ m.imdbID}}" class="card-img-top" src="{m.poster}" alt="" />
+            <div style="cursor: pointer;" onclick="window.location='{{ url_for( "movie" , movie_title=m.movie_title) }}';" class="card h-100 ">
+                <script>
+                  $("#IMD{{m.imdbID}}").ready(function () {
+                    getImgFromServer("{{m.imdbID}}","IMD","small");
+      
+                    $("#IMD{{m.imdbID}}").hover(function () {
+                      $("#IMD{{m.imdbID}}").css("-webkit-filter", "blur(3.5px) grayscale(75%)");
+                    
+                      $("#TXT{{ m.imdbID}}").css("opacity","1")
+                    
+                    }, 
+                    function () {
+                      $("#IMD{{m.imdbID}}").css("-webkit-filter", "blur(0) grayscale(0%)");
+                      
+                        $("#TXT{{ m.imdbID}}").css("opacity","0")
+                    })
+      
+                  });
+                </script>
                 
-                <b>
-                  <p class="text-center" id="TXT{{ m.imdbID}}" style="position: absolute; bottom: 1%; width: 100%; opacity: 0;">{{ m.movie_title }}</p>
-                </b>
-                </div>
+                  <img id="IMD{{ m.imdbID}}" class="card-img-top" src="" alt="" />
+                  
+                  <b><p class="text-center" id="TXT{{ m.imdbID}}" style="position: absolute; bottom: 1%; width: 100%; opacity: 0;text-shadow: 1px 1px #222222,-1px -1px #000000;">{{ m.movie_title }}</p></b>
+              </div>
             {% endfor %}
           </div>
     {% for m in movies %}
-    <!-- /.row -->
+    <!-- 
     <div class=" modal fade" id="{{ m.imdbID }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
       aria-hidden="true">
       <div class="modal-dialog modal-lg" role="document">
@@ -115,14 +218,14 @@
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
-
+          
 
           <div class="modal-body">
               <div class="row">
                 <div class="col-md-5">
                     <script>
                         $(document).ready(function () {
-                          getImgFromServer("{{m.imdbID}}","mod{{m.imdbID}},big");
+                          getImgFromServer("{{m.imdbID}}","mod","big");
                         });
                     </script>
                   <img id="mod{{m.imdbID}}" src="">
@@ -175,7 +278,7 @@
         </div>
       </div>
     </div>
-
+/.row -->
     {% endfor %} 
       </section>
   <!-- /.container -->
@@ -190,40 +293,6 @@
   <!-- Bootstrap core JavaScript -->
 
   <script src="{{ url_for('static',filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-  <script>
-    function getImgFromServer(imdbID,imgID,size) {
-      $.get("/getPoster", { imdbID: imdbID,size:size }, function (data) {
-        $("#" + imgID).attr("src", data);
-        $("#" + imgID).hover(function () {
-          
-          $(this).css("-webkit-filter", "blur(3.5px) grayscale(75%)");
-        
-          $("#TXT" + imdbID).css("opacity","1")
-        
-        }, 
-        function () {
-          $(this).css("-webkit-filter", "blur(0) grayscale(0%)");
-          
-            $("#TXT" + imdbID).css("opacity","0")
-        })
-
-      });
-    }
-
-    function getBackDrop(imdbID) {
-      $.get("/getBackDrop", { imdbID: imdbID}, function (data) {
-        $(".jumbotron").children(".bg").css("-webkit-filter", "blur(3.5px) grayscale(25%)");
-        $(".jumbotron").css("background-image", "url("+data+")");
-        $(".jumbotron").css("background-size", "cover");
-        $(".jumbotron").css("height", "100%");
-        $(".jumbotron").children(".bg").css("height", "100%");
-        $(".jumbotron").children(".bg").css("background-size", "cover");
-        console.log(data)
-      });
-    }
-
-
-  </script>
 </body>
 
 </html>

@@ -25,12 +25,16 @@ class User(db.Model):
             db.session.add(movie)
             db.session.commit()
 
+    def isWatched(self,imdbID):
+        return MovieWatched.query.filter_by(imdbID=imdbID).filter_by(user_id=self.id).first() != None
+
     @staticmethod
     def getById(fb_id):
         user = User.query.filter_by(fb_id=fb_id).first()
         return user
 
-    
+    def getWatched(self):
+        return [mov.__dict__ for mov in MovieWatched.query.filter_by(user_id=self.id).all()]
 
     @staticmethod
     def get_or_create(name, fb_id):
@@ -60,6 +64,56 @@ class MovieLike(db.Model):
             return None
         return MovieLike.query.filter_by(user_id=user.id).all()
 
+class Movie(db.Model):
+    __tablename__ = 'movie'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(300), unique=False)
+    
+    imdbID = db.Column(db.String(12), unique=True)
+
+    director = db.Column(db.String(300), unique=False)
+
+    year = db.Column(db.String(5), unique=False)
+
+    genres = db.relationship('Genre', backref='genreMov', lazy='dynamic')
+
+    actors = db.relationship('Actor', backref='actorMov', lazy='dynamic')
+
+
+    def getGenres(self):
+        return [gen.genre for gen in self.genres]
+    
+    def getActors(self):
+        return [act.name for act in self.actors]
+
+    def __repr__(self):
+        return '<Movie %r, Id: %s , Year: %s>' % (self.title,self.imdbID,self.year)
+
+    def addGenres(self,genres):
+        genresList = []
+        
+        for gen in genres:
+            genresList.append(Genre(genre=gen))
+        
+        self.genres.extend(genresList)
+
+    def addActors(self,actors):
+        actorsList = []
+       
+        for act in actors:
+            actorsList.append(Actor(name=act))
+        
+        self.actors.extend(actorsList)
+
+    @staticmethod
+    def getMovieFromTitle(title):
+        return Movie.query.filter_by(title=title).first()
+    
+    @staticmethod
+    def getMovieFromImdbID(imdbID):
+        return Movie.query.filter_by(imdbID=imdbID).first()
+
+
 
 class MovieWatched(db.Model):
     __tablename__ = 'moviewatched'
@@ -69,14 +123,17 @@ class MovieWatched(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship("User")
 
-
-
     imdbID = db.Column(db.String(12), unique=True)
 
     genres = db.relationship('MovieGenre', backref='movieGen', lazy='dynamic')
 
     actors = db.relationship('MovieActor', backref='movieAct', lazy='dynamic')
 
+    def getGenres(self):
+        return [gen.genre for gen in self.genres]
+    
+    def getActors(self):
+        return [act.name for act in self.actors]
 
     def __repr__(self):
         return '<MovieWatched %r>' % self.title
@@ -118,9 +175,31 @@ class MovieGenre(db.Model):
 
 class MovieActor(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(300), unique=True)
+    name = db.Column(db.String(300), unique=False)
     movie = db.relationship("MovieWatched")
     movie_id = db.Column(db.Integer, db.ForeignKey('moviewatched.id'), nullable=False)
+
+    def __repr__(self):
+        return '<Genre %r>' % self.actor
+
+
+
+
+class Genre(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    genre = db.Column(db.String(50), unique=False)
+    movie = db.relationship("Movie")
+    movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'), nullable=False)
+
+    def __repr__(self):
+        return '<Genre %r>' % self.genre
+
+
+class Actor(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(300), unique=False)
+    movie = db.relationship("Movie")
+    movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'), nullable=False)
 
     def __repr__(self):
         return '<Genre %r>' % self.actor

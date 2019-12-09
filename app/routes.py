@@ -1,12 +1,12 @@
 from app import app
-from app.models import User, MovieLike,MovieWatched,MovieGenre,MovieActor
+from app.models import User, MovieLike,MovieWatched,MovieGenre,MovieActor,Movie,Actor,Genre
 import os
 from flask import Flask, render_template,request,flash,url_for,redirect,session
 import requests
 import json
 from random import shuffle,randint
 from rauth.service import OAuth2Service
-
+from urllib.parse import unquote
 
 REC_URL = app.config["BASE_REC_URL"]
 
@@ -22,6 +22,7 @@ facebook = OAuth2Service(name='facebook',
 
 @app.route('/')
 def index():
+   
     return redirect(url_for('getRecomended'))
 
 
@@ -67,22 +68,89 @@ def authorized():
 
     return redirect(url_for('getRecomended'))
 
-@app.route('/setWatch',methods=['GET'])
-def setWatch():
-    if "id" not in session:
-            flash("Not Logged in!")
-            return render_template("index.html")
+@app.route("/logout",methods=['GET'])
+def logout():
+    if "id" in session:
+        del session["id"]
+    if "me" in session:
+        del session["me"]
+    return redirect(url_for("getRecomended"))
 
+def setWatch(title):
+    if "id" not in session:
+        return render_template("index.html")
+    print("SET WATCH")
     
-    mov = MovieWatched(title="Tit",imdbID="tsa323a")
+    m = Movie.getMovieFromTitle(title)
     
-    mov.addGenres(["Gen1","gen2"])
-    mov.addActors(["ACT1","Act2"])
+    mov = MovieWatched(title=m.title,imdbID=m.imdbID)
+    
+    mov.addGenres(m.getGenres())
+    mov.addActors(m.getActors())
+    
     us = User.getById(session["id"])
     
-    us.addWatched(mov)
+    if not us.isWatched(mov.imdbID):
+
+        us.addWatched(mov)
     
     return redirect(url_for('getRecomended'))
+
+
+@app.route('/watched',methods=['GET'])
+def watched():
+    if request.method == 'GET':
+        if "id" not in session:
+            flash("Not Logged in!")
+            return render_template("watched.html")
+
+        user = User.getById(session["id"])
+        login = "id" not in session
+        return render_template("watched.html",movies = user.getWatched(),login=login)
+
+@app.route('/watchedRecomend',methods=['GET'])
+def watchedRecomend():
+    if request.method == 'GET':
+        if "id" not in session:
+            flash("Not Logged in!")
+            return render_template("searchFacebook.html")
+
+        watched = MovieWatched.getAllUserWatches(session["id"])
+
+        genList = [gen for gen in [gen.getGenres() for gen in watched]]
+        print(genList)
+        counts = dict()
+
+        for genres in genList:
+            for g in genres:
+                if g not in counts.keys():
+                    counts[g] = 0
+                counts[g] = counts[g] + 1
+
+        counts = sorted(counts.items(), key=lambda x: x[1],reverse=True)
+
+        actList = [act for act in [act.getActors() for act in watched]]
+        print(counts)
+        countsAct = dict()
+
+        for actors in actList:
+            for a in actors:
+                if a not in countsAct.keys():
+                    countsAct[a] = 0
+                countsAct[a] = countsAct[a] + 1
+
+        countsAct = sorted(countsAct.items(), key=lambda x: x[1],reverse=True)
+
+        
+        print(countsAct)
+
+        result = requests.get(REC_URL+"GetTextRecommended",{"query":counts[0][0] + " " + counts[1][0]})
+
+        print("TXT"+result.text)
+        login = "me" not in session
+    return render_template("searchFacebook.html",list=[],login=login)
+
+
 
 
 @app.route('/recomended',methods=['GET'])
@@ -97,21 +165,25 @@ def getRecomended():
 
         files = json.loads(toLoad)
         dataList = [json.loads(f["data"]) for f in files]
+        for d in dataList:
+            d["genres"] = d["genres"].split(" ")
+
         shuffle(dataList)
 
         login = "me" not in session
-        return render_template("index.html",relevent=dataList[0] ,movies=dataList[1:16],login=login)
+        return render_template("index.html",releventMovies=dataList[:3] ,movies=dataList[:24],login=login)
+
 
 @app.route('/facebookRecomended',methods=['GET'])
 def getFromFacebookLikes():
     if request.method == 'GET':
         if "id" not in session:
             flash("Not Logged in!")
-            return render_template("index.html")
+            return render_template("searchFacebook.html")
 
         likes = MovieLike.getAllUserLikes(session["id"])
         shuffle(likes)
-        likes = likes[:2]
+        likes = likes[:3]
         titles = [l.title for l in likes]
         toRet = []
         for l in titles:
@@ -119,13 +191,137 @@ def getFromFacebookLikes():
             result = requests.get(REC_URL+"GetTextRecommended",{"query":l})
             list = json.loads(result.text)
             pack = [json.loads(f["data"]) for f in list ]
-            toDict["movies"] = pack[:5]
+            toDict["movies"] = pack[:6]
             toDict["packName"] = l
             toRet.append(toDict)
 
         print(toRet)
         login = "me" not in session
-    return render_template("searchFacebook.html", list=toRet,login=login)
+    return render_template("searchFacebook.html",list=toRet,login=login)
+
+
+@app.route('/booking_confirmation', methods=["GET", "POST"])
+def booking_confirmation():
+    if request.method == "GET":
+        print(request.args)
+        print(request.args.get("status"))
+        if "status" not in request.args:
+            return redirect(url_for('movie',movie_title=session["name"],success=False))
+        if request.args.get("status") == "200":
+            message = {"200": 'ok'}
+            setWatch(session["name"])
+            return redirect(url_for('movie',movie_title=session["name"],success="True"))
+        else:
+            for seat in session['seat']:
+                requests.delete("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking",
+                json = {'userId': session["id"],
+                        'bookingDate': session['date'] + "T21:00:00Z",
+                        'asset': {'name': session['name'],
+                            'location': session['location'], 
+                            'seat': seat
+                        }
+                })
+            message = {"500": 'not ok'}
+        print(message)
+        
+        return redirect(url_for('movie',movie_title=session["name"],success="False"))
+    return "None"
+
+
+@app.route('/movie/<movie_title>',methods=['GET', 'POST'])
+def movie(movie_title,success=False):
+    
+    session['name'] = movie_title
+    if request.method == 'POST':
+        if request.form != None:
+            if "id" not in session:
+                flash("Not Logged in!")
+                return render_template("index.html")
+                
+            print(request.form)
+            date = unquote(request.form.get("day"))
+            cinema = unquote(request.form.get("cinema"))
+            name = unquote(request.form.get("movie_title"))
+            session['seat'] = []
+
+            for seat in request.form:
+                if "seat_select" in seat:
+                    if requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking?bookingId={\"location\":\"" + cinema + "\", \"name\":\"" + name + "\", \"seat\":\"" + unquote(request.form.get(seat)) + "\"}").content == b'[]\n':
+                        requests.post("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking",
+                        json = {'userId': session["id"],
+                                'bookingDate': date + ":00Z",
+                                'asset': {'name': name,
+                                    'location': cinema, 
+                                    'seat': unquote(request.form.get(seat))
+                                }
+                        })
+                        session['seat'].append(unquote(request.form.get(seat)))
+            
+            session['date'] = date + ":00Z"
+            session['name'] = name
+            session['location'] = cinema
+            
+            return redirect(url_for("booking_confirmation", status=200))
+            #return redirect(url_for("payment", json={'name': name, 'seat': len(session['seat'])}), code=307)
+            
+    if request.method == 'GET':
+        movie_details = {}
+        movie_details["title"] = "PayON"
+        movie_details["description"] = "PayOn is a payment service for xxx.."
+
+        movies = requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/asset?assetKey=name")
+        movies = json.loads(movies.text)
+
+        cinemas = requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/asset?assetId={\"name\":\"" + movie_title + "\"}&assetKey=location")
+        cinemas = json.loads(cinemas.text)
+
+        select = request.args.get("cinema")
+        #print(select)
+        mov = Movie.getMovieFromTitle(movie_title)
+        print(mov.__dict__)
+        movDict = mov.__dict__
+        movDict["actors"] = mov.getActors()
+        movDict["genres"] = mov.getGenres()
+        imdbID = mov.imdbID
+        
+        success = request.args.get("success")
+        if success == "True":
+           flash("Movie {} bougth successfully!".format(mov.title))
+
+        return render_template('movie.html', movie=movDict, movie_title=movie_title, cinemas=cinemas)
+
+
+@app.route('/seats',methods=['GET', 'POST'])
+def seats():
+    if request.method == "GET":
+        seats = []
+
+        cinema = unquote(request.args.get("cinema"))
+        movie_title = unquote(request.args.get("movie_title"))
+
+        seats = requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/asset?assetId={\"name\":\"" + movie_title + "\", \"location\":\"" + cinema + "\"}&assetKey=seat")
+        seats = json.loads(seats.text)
+
+        seats_taken = requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking?bookingId={\"name\":\"" + movie_title + "\", \"location\":\"" + cinema + "\"}&bookingKey=seat")
+        seats_taken = json.loads(seats_taken.text)
+        print(seats_taken)
+
+        for seat in seats_taken:
+            if seat in seats:
+                seats.remove(seat)
+        d = dict()
+        d["list"] = seats
+        return d
+
+
+@app.route('/movie',methods=['GET'])
+def movie2():
+    if request.method == 'GET':
+        movie_details = {}
+        movie_details["title"] = "PayON"
+        movie_details["description"] = "PayON"
+    return render_template("movie.html", movie=movie_details)
+
 
 @app.route('/search',methods=['GET'])
 def searchPack():
@@ -136,9 +332,11 @@ def searchPack():
         result = requests.get(REC_URL+"GetTextRecommended",{"query":query})
         
         print(result.text)
-        list = json.loads(result.text)
-        pack = [json.loads(f["data"]) for f in list ]
-    return render_template("index.html",relevent=[], movies=pack[:20])
+        listM = json.loads(result.text)
+        print(listM)
+        print(len(listM))
+        pack = [json.loads(f["data"]) for f in listM ]
+    return render_template("search.html",query=query, movies=pack)
         
 
 
@@ -147,20 +345,21 @@ def payment():
     if request.method == 'POST':
         # url = "http://localhost:8040/payment"
         url = "http://localhost:8040/api/payment"
-        params = {
+        data = {
+            #         "amount": request.form['amount'],
+            # "MOVIETITLE": request.form['MOVIETITLE'],
+            # "MOVIEPRICE": request.form['MOVIEPRICE']
             # "amount": request.form['amount'],
-            "client": "client data",
-            "amount": "50e"
+            "amount":"7",
+            "MOVIETITLE": session['name'],
+            "MOVIEPRICE": len(session['seat'])*6,
+            "CALLER": "https://127.0.0.1:8000/booking_confirmation",
         }
-        # data = {"eventType": "AAS_PORTAL_START", "data": {"uid": "hfe3hf45huf33545", "aid": "1", "vid": "1"}}
-        # requests.post(url, params=params)
-        # requests.post(url, params=params)
-        requests.get(url, params=params)
-    else:
-        data = requests.get("http://localhost:8040/api/payment")
-        print(data.text)
-        return render_template("payment.html")
 
+        data = requests.post(url,json=data)
+        print(data.text)
+        print(data.status_code)
+        return redirect('http://localhost:8040')
 
 @app.route('/getBackDrop',methods=['GET'])
 def getBackDrop():
@@ -203,6 +402,10 @@ def getPoster():
     if size == "small":
        # print("https://image.tmdb.org/t/p/w85"+ data["poster_path"])
         return "https://image.tmdb.org/t/p/w185"+ data["poster_path"]
+
+    if size == "medium":
+       # print("https://image.tmdb.org/t/p/w85"+ data["poster_path"])
+        return "https://image.tmdb.org/t/p/w342"+ data["poster_path"]
     
   #  print("https://image.tmdb.org/t/p/w300"+ data["poster_path"])
-    return "https://image.tmdb.org/t/p/w185"+ data["poster_path"]
+    return "https://image.tmdb.org/t/p/w500"+ data["poster_path"]
