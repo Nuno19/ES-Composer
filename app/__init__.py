@@ -15,7 +15,7 @@ db.create_all()
 
 from app.models import Movie,Actor,Genre
 file = open("final.csv","r",encoding="utf-8")
-if False:
+if True:
     i=0
     spamreader = csv.reader(file, delimiter='	', quotechar='',quoting=csv.QUOTE_NONE,)
     for row in spamreader:
