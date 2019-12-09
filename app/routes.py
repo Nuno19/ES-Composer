@@ -41,14 +41,15 @@ def authorized():
     if not 'code' in request.args:
         flash('You did not authorize the request')
         return redirect(url_for('index'))
-
+ 
     # make a request for the access token credentials using code
     redirect_uri = url_for('authorized', _external=True)
-    data = dict(code=request.args['code'], redirect_uri=redirect_uri)   
+    data = dict(code=request.args['code'], redirect_uri=redirect_uri)
+    auth = facebook.get_auth_session(data=data,decoder=lambda b: json.loads(str(b,encoding='utf-8')))
    
-    auth = facebook.get_auth_session(data=data,decoder=json.loads)
+    # auth = facebook.get_auth_session(data=data,decoder=json.loads)
     print(auth)
-    
+   
     session["code"] = json.dumps(data)
     # the "me" response
     me = auth.get('me').json()
@@ -57,16 +58,16 @@ def authorized():
     #likes = sessions.get('me?fields=likes.summary(true)').json()
     likes = auth.get('me?fields=movies').json()
     us = User.get_or_create(me["name"],me["id"])
-    
-
+   
+ 
     movies = [data["name"] for data in likes["movies"]["data"]]
-    
+   
     print(movies)
     for l in movies:
          us.addLike(MovieLike(title=l))
     print(us.likes)
     flash('Logged in as ' + me['name'])
-
+ 
     return redirect(url_for('getRecomended'))
 
 @app.route("/logout",methods=['GET'])
