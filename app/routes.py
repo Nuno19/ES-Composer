@@ -148,7 +148,7 @@ def watched():
         shuffle(l2)
         dataList.append(l2[:24])
     except:
-        return render_template("watched.html",watched=watched, recommend=None,login=login)
+        return render_template("watched.html",watched=watched, recommend=[],login=login)
             
     return render_template("watched.html",watched=watched, recommend=dataList[:24],login=login)
 
