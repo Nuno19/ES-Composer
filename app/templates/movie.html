@@ -123,7 +123,9 @@
       $('#new_seat').on('click',function(e){
         if (index > 9){
           document.getElementById("new_seat").style.display = "none";
+          return
         }
+        $("#priceID").text(parseInt($('#priceID').text())+6 + "€  ")
         console.log($(this).val())
         document.getElementById("seat_select" + index).style.display = "inline";
         console.log($("#seat_select" + index))
@@ -292,6 +294,7 @@
             </tr>
           </table>
         </div>
+        <h3 id="priceID" style="position: absolute; right: 10%; bottom: -17%;">6€</h3>
         <button class="btn btn-primary" style="position: absolute; right: -5%; bottom: -15%;" type="submit" id="submit" name="submit" disabled>Buy</button>
         <div style="padding-top:6% ;" class="col-4">
             <button type="button" id="new_seat" class="btn btn-secondary" style="display: none;">Add seat</button>

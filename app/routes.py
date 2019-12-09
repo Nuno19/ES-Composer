@@ -236,11 +236,7 @@ def getFromFacebookLikes():
 @app.route('/booking_confirmation', methods=["GET", "POST"])
 def booking_confirmation():
     if request.method == "GET":
-        print(request.args)
-        print(request.args.get("status"))
-        if "status" not in request.args:
-            return redirect(url_for('movie',movie_title=session["name"],success=False))
-        if request.args.get("status") == "200":
+        if True:
             message = {"200": 'ok'}
             setWatch(session["name"])
             return redirect(url_for('movie',movie_title=session["name"],success="True"))
@@ -296,8 +292,22 @@ def movie(movie_title,success=False):
             session['name'] = name
             session['location'] = cinema
             
-            return redirect(url_for("booking_confirmation", status=200))
-            #return redirect(url_for("payment", json={'name': name, 'seat': len(session['seat'])}), code=307)
+            #PAYMENT START
+            url = "https://hidden-gorge-09072.herokuapp.com/api/payment"
+            data = {
+            "TITLE": session['name'],
+            "PRICE": len(session['seat'])*6,
+            "BANK_ACCOUNT": str("CINEMA "+cinema),
+            "PAYMENT_REDIRECT_URL": "https://cinemoo.herokuapp.com/booking_confirmation",
+            }
+ 
+            data = requests.post(url,json=data)
+            print(data.text)
+            print(data.status_code)
+            return redirect('https://hidden-gorge-09072.herokuapp.com/')
+ 
+            #PAYMENT FINISH
+            
             
     if request.method == 'GET':
         movie_details = {}
