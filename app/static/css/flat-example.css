@@ -2,7 +2,7 @@
 :root {
     --primary: #141414;
     --light: #F3F3F3;
-    
+
     --dark: 	#686868;
   }
 
@@ -51,8 +51,6 @@
 .loginBtn:active {
   box-shadow: inset 0 0 0 32px rgba(0,0,0,0.1);
 }
-
-
 /* Facebook */
 .loginBtn--facebook {
   background-color: #4C69BA;
