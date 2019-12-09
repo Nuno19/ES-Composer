@@ -7,6 +7,7 @@ import json
 from random import shuffle,randint
 from rauth.service import OAuth2Service
 from urllib.parse import unquote
+import datetime
 
 REC_URL = app.config["BASE_REC_URL"]
 
@@ -43,8 +44,8 @@ def authorized():
 
     # make a request for the access token credentials using code
     redirect_uri = url_for('authorized', _external=True)
-    data = dict(code=request.args['code'], redirect_uri=redirect_uri)
-    
+    data = dict(code=request.args['code'], redirect_uri=redirect_uri)   
+   
     auth = facebook.get_auth_session(data=data,decoder=json.loads)
     print(auth)
     
@@ -83,7 +84,10 @@ def setWatch(title):
     
     m = Movie.getMovieFromTitle(title)
     
-    mov = MovieWatched(title=m.title,imdbID=m.imdbID)
+    time = session["date"].split("T")[1].split(":00Z")[0]
+    date = session["date"].split("T")[0]
+
+    mov = MovieWatched(title=m.title,imdbID=m.imdbID,date=date,time=time,cinema=session["location"])
     
     mov.addGenres(m.getGenres())
     mov.addActors(m.getActors())
@@ -93,8 +97,6 @@ def setWatch(title):
     if not us.isWatched(mov.imdbID):
 
         us.addWatched(mov)
-    
-    return redirect(url_for('getRecomended'))
 
 
 @app.route('/watched',methods=['GET'])
@@ -106,18 +108,12 @@ def watched():
 
         user = User.getById(session["id"])
         login = "id" not in session
-        return render_template("watched.html",movies = user.getWatched(),login=login)
 
-@app.route('/watchedRecomend',methods=['GET'])
-def watchedRecomend():
-    if request.method == 'GET':
-        if "id" not in session:
-            flash("Not Logged in!")
-            return render_template("searchFacebook.html")
-
-        watched = MovieWatched.getAllUserWatches(session["id"])
-
-        genList = [gen for gen in [gen.getGenres() for gen in watched]]
+        watched = user.getWatched()
+    login = "me" not in session
+    try:
+        wat = MovieWatched.getAllUserWatches(session["id"])
+        genList = [gen for gen in [gen.getGenres() for gen in wat]]
         print(genList)
         counts = dict()
 
@@ -129,7 +125,7 @@ def watchedRecomend():
 
         counts = sorted(counts.items(), key=lambda x: x[1],reverse=True)
 
-        actList = [act for act in [act.getActors() for act in watched]]
+        actList = [act for act in [act.getActors() for act in wat]]
         print(counts)
         countsAct = dict()
 
@@ -141,18 +137,52 @@ def watchedRecomend():
 
         countsAct = sorted(countsAct.items(), key=lambda x: x[1],reverse=True)
 
-        
-        print(countsAct)
+        result = json.loads(requests.get(REC_URL+"GetTextRecommended",{"query":counts[0][0] + " " + counts[1][0]}).text)
+        l1 = [json.loads(f["data"]) for f in result]
+        shuffle(l1)
+        dataList = l1[:24]
+        result = json.loads(requests.get(REC_URL+"GetTextRecommended",{"query":countsAct[0][0]}).text)
+        print(result)
+        l2 = [json.loads(f["data"]) for f in result]
+        shuffle(l2)
+        dataList.append(l2[:24])
+    except:
+        return render_template("watched.html",watched=watched, recommend=None,login=login)
+            
+    return render_template("watched.html",watched=watched, recommend=dataList[:24],login=login)
 
-        result = requests.get(REC_URL+"GetTextRecommended",{"query":counts[0][0] + " " + counts[1][0]})
-
-        print("TXT"+result.text)
-        login = "me" not in session
-    return render_template("searchFacebook.html",list=[],login=login)
 
 
+@app.route('/tickets',methods=['GET'])
+def getTickets():
+    if "id" not in session:
+        flash("Not Logged in!")
+        return render_template("searchFacebook.html")
+    date = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+    
+    ticketsJson = json.loads(requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking?bookingId={\"id_user\":\"" + str(session["id"]) + "\",\"date\":\"" + date + "\"}").text)
+    tickets = []
+    for t in ticketsJson:
+        mov = dict()
+        mov["date"] = t["date"]
+        mov["time"]  = t["date"].split("T")[1].split(":00Z")[0]
+        mov["day"]  = t["date"].split("T")[0]
+        mov["day"] = datetime.datetime.strptime( mov["day"] , '%Y-%m-%d').strftime('%d/%m/%y')
+        mov["cinema"] = t["location"]
+        mov["title"] = t["name"]
 
-
+        if not any([mov.items() <= tk.items() for tk in tickets]):
+            mov["seat"] = t["seat"] 
+            tickets.append(mov)
+            continue
+        for tk in tickets:
+            if mov.items() <= tk.items():
+                tk["seat"] += ", " + t["seat"]
+                continue
+    tickets = sorted(tickets, key=lambda k: (k['day'], k['time'])) 
+  
+    print(tickets)
+    return render_template("tickets.html",tickets=tickets)
 @app.route('/recomended',methods=['GET'])
 def getRecomended():
     if request.method == 'GET':
@@ -179,7 +209,8 @@ def getFromFacebookLikes():
     if request.method == 'GET':
         if "id" not in session:
             flash("Not Logged in!")
-            return render_template("searchFacebook.html")
+            login = "id" not in session
+            return render_template("searchFacebook.html",login=login)
 
         likes = MovieLike.getAllUserLikes(session["id"])
         shuffle(likes)
@@ -215,7 +246,7 @@ def booking_confirmation():
             for seat in session['seat']:
                 requests.delete("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking",
                 json = {'userId': session["id"],
-                        'bookingDate': session['date'] + "T21:00:00Z",
+                        'bookingDate': session['date'],
                         'asset': {'name': session['name'],
                             'location': session['location'], 
                             'seat': seat
@@ -298,11 +329,11 @@ def seats():
 
         cinema = unquote(request.args.get("cinema"))
         movie_title = unquote(request.args.get("movie_title"))
-
+        date = unquote(request.args.get("day")) + ":00Z"
         seats = requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/asset?assetId={\"name\":\"" + movie_title + "\", \"location\":\"" + cinema + "\"}&assetKey=seat")
         seats = json.loads(seats.text)
 
-        seats_taken = requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking?bookingId={\"name\":\"" + movie_title + "\", \"location\":\"" + cinema + "\"}&bookingKey=seat")
+        seats_taken = requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking?bookingId={\"name\":\"" + movie_title + "\", \"location\":\"" + cinema + "\",\"date\":\""+date+"\"}&bookingKey=seat")
         seats_taken = json.loads(seats_taken.text)
         print(seats_taken)
 

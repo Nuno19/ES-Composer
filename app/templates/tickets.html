@@ -7,7 +7,7 @@
   <meta name="description" content="" />
   <meta name="author" content="" />
 
-  <title>Cinemoo - Watched</title>
+  <title>Cinemoo - Tickets</title>
 
   <!-- Custom js Functions-->
   <script src="{{ url_for('static',filename='vendor/functions.js') }}"></script>
@@ -46,13 +46,14 @@
           <li class="nav-item">
             <a class="nav-link" href="/facebookRecomended">ForYou</a>
           </li>
-          <li class="nav-item active">
+          <li class="nav-item ">
             <a class="nav-link" href="/watched">Watched
-            <span class="sr-only">(current)</span>
+           
             </a>
           </li>
-          <li class="nav-item">
-              <a class="nav-link" href="/tickets">My Tickets</a>
+          <li class="nav-item active">
+              <a class="nav-link" href="/tickets">My Tickets
+                <span class="sr-only">(current)</span></a>
             </li>
         </ul>
         </div>
@@ -89,76 +90,29 @@
   <section class="main-container">
     <!-- Jumbotron Header -->
     <!-- Page Features -->
-    <h3> Movies Watched </h3>
-    <div class="box">
-      {% for m in watched %}
-      <script>
-        $(document).ready(function(){
-          console.log("{{m}}")
-        });
-      </script>
-        <div style="cursor: pointer;" onclick="window.location='{{ url_for( "movie" , movie_title=m.title) }}';" class="card h-100 ">
-          <script>
-            $("#IMD{{m.imdbID}}").ready(function () {
-              getImgFromServer("{{m.imdbID}}","IMD","small");
-
-              $("#IMD{{m.imdbID}}").hover(function () {
-                $("#IMD{{m.imdbID}}").css("-webkit-filter", "blur(3.5px) grayscale(75%)");
-              
-                $(".TXT{{ m.imdbID}}").css("opacity","1")
-              
-              }, 
-              function () {
-                $("#IMD{{m.imdbID}}").css("-webkit-filter", "blur(0) grayscale(0%)");
-                
-                  $(".TXT{{ m.imdbID}}").css("opacity","0")
-              })
-
-            });
-          </script>
-          
-            <img id="IMD{{ m.imdbID}}" class="card-img-top" src="" alt="" />
-            <b><p class="text-center TXT{{ m.imdbID}}" id="TXT{{ m.imdbID}}" style="position: absolute; bottom: 1%; width: 100%; opacity: 0;text-shadow: 1px 1px #222222,-1px -1px #000000;">{{ m.title }}</p></b>
-        </div>
-      {% endfor %}
-
-
-    </div>
-    <h3 style="margin-top:20px;"> Based on your history you might like: </h3>
-    <div class="box">
-        {% for m in recommend %}
-        <script>
-          $(document).ready(function(){
-            console.log("{{m}}")
-          });
-        </script>
-          <div style="cursor: pointer;" onclick="window.location='{{ url_for( "movie" , movie_title=m.movie_title) }}';" class="card h-100 ">
-            <script>
-              $("#IMD{{m.imdbID}}").ready(function () {
-                getImgFromServer("{{m.imdbID}}","IMD","small");
-  
-                $("#IMD{{m.imdbID}}").hover(function () {
-                  $("#IMD{{m.imdbID}}").css("-webkit-filter", "blur(3.5px) grayscale(75%)");
-                
-                  $(".TXT{{ m.imdbID}}").css("opacity","1")
-                
-                }, 
-                function () {
-                  $("#IMD{{m.imdbID}}").css("-webkit-filter", "blur(0) grayscale(0%)");
-                  
-                    $(".TXT{{ m.imdbID}}").css("opacity","0")
-                })
-  
-              });
-            </script>
-            
-              <img id="IMD{{ m.imdbID}}" class="card-img-top" src="" alt="" />
-              <b><p class="text-center TXT{{ m.imdbID}}" id="TXT{{ m.imdbID}}" style="position: absolute; bottom: 1%; width: 100%; opacity: 0;text-shadow: 1px 1px #222222,-1px -1px #000000;">{{ m.movie_title }}</p></b>
-          </div>
-        {% endfor %}
-  
-  
-      </div>
+    <h3> Tickets </h3>
+    <table style="background-color: #141414;" class="table table-dark">
+      <thead>
+          <tr>
+            <th scope="col">Title</th>
+            <th scope="col">Cinema</th>
+            <th scope="col">Day</th>
+            <th scope="col">Time</th>
+            <th scope="col">Seats</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in tickets %}
+          <tr>
+            <td>{{t.title}}</td>
+            <td>{{t.cinema}}</td>
+            <td>{{t.day}}</td>
+            <td>{{t.time}}</td>
+            <td>{{t.seat}}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+    </table>
       </section>
   <!-- /.container -->
   <!--

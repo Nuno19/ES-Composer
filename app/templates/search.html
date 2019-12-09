@@ -18,6 +18,8 @@
   <!-- Custom styles for this template -->
   <link href="{{ url_for('static',filename='css/heroic-features.css') }}" rel="stylesheet" />
   <link href="{{ url_for('static',filename='css/flat-example.css') }}" rel="stylesheet" />
+  
+  <link rel="icon" href="{{url_for('static',filename='images/logo.png')}}">
 </head>
 
 <body >
@@ -29,7 +31,7 @@
       <a class=" netflixLogo navbar-brand" href="/recomended">
        <img style="height: 50px;" class=" netflixLogo navbar-brand" src="{{url_for('static',filename='images/logo.png')}}">
        
-        ES Recommender
+       Cinemoo
       </a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive"
         aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,6 +50,9 @@
                   <a class="nav-link" href="/watched">Watched
                   </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/tickets">My Tickets</a>
+                  </li>
               </ul>
         </div>
         <div class="navbar-collapse collapse w-100 order-2 dual-collapse2">

@@ -49,7 +49,7 @@ class User(db.Model):
 class MovieLike(db.Model):
     __tablename__ = 'movieliked'
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), unique=True)
+    title = db.Column(db.String(200), unique=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship("User")
 
@@ -125,9 +125,14 @@ class MovieWatched(db.Model):
 
     imdbID = db.Column(db.String(12), unique=True)
 
+    date = db.Column(db.String(20), unique=False)
+    time = db.Column(db.String(10), unique=False)
+    cinema = db.Column(db.String(300), unique=False)
+
     genres = db.relationship('MovieGenre', backref='movieGen', lazy='dynamic')
 
     actors = db.relationship('MovieActor', backref='movieAct', lazy='dynamic')
+
 
     def getGenres(self):
         return [gen.genre for gen in self.genres]
