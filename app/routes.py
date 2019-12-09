@@ -11,6 +11,9 @@ import datetime
 
 REC_URL = app.config["BASE_REC_URL"]
 
+#URL_DATABASE = "http://127.0.0.1:8080"
+URL_DATABASE = "https://es-booking-service.herokuapp.com"
+
 graph_url = 'https://graph.facebook.com/'
 facebook = OAuth2Service(name='facebook',
                          authorize_url='https://www.facebook.com/dialog/oauth',
@@ -41,15 +44,13 @@ def authorized():
     if not 'code' in request.args:
         flash('You did not authorize the request')
         return redirect(url_for('index'))
- 
+
     # make a request for the access token credentials using code
     redirect_uri = url_for('authorized', _external=True)
-    data = dict(code=request.args['code'], redirect_uri=redirect_uri)
+    data = dict(code=request.args['code'], redirect_uri=redirect_uri)   
     auth = facebook.get_auth_session(data=data,decoder=lambda b: json.loads(str(b,encoding='utf-8')))
-   
-    # auth = facebook.get_auth_session(data=data,decoder=json.loads)
     print(auth)
-   
+    
     session["code"] = json.dumps(data)
     # the "me" response
     me = auth.get('me').json()
@@ -58,16 +59,16 @@ def authorized():
     #likes = sessions.get('me?fields=likes.summary(true)').json()
     likes = auth.get('me?fields=movies').json()
     us = User.get_or_create(me["name"],me["id"])
-   
- 
+    
+
     movies = [data["name"] for data in likes["movies"]["data"]]
-   
+    
     print(movies)
     for l in movies:
          us.addLike(MovieLike(title=l))
     print(us.likes)
     flash('Logged in as ' + me['name'])
- 
+
     return redirect(url_for('getRecomended'))
 
 @app.route("/logout",methods=['GET'])
@@ -160,17 +161,17 @@ def getTickets():
         flash("Not Logged in!")
         return render_template("searchFacebook.html")
     date = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
-    
-    ticketsJson = json.loads(requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking?bookingId={\"id_user\":\"" + str(session["id"]) + "\",\"date\":\"" + date + "\"}").text)
+    print(date)
+    ticketsJson = json.loads(requests.get(URL_DATABASE + "/raimas1996/Booking_Service_test/1.0.0/booking?bookingId={\"id_user\":\"" + str(session["id"]) + "\",\"date\":\"" + date + "\"}").text)
     tickets = []
     for t in ticketsJson:
         mov = dict()
         mov["date"] = t["date"]
+        mov["title"] = t["name"]
         mov["time"]  = t["date"].split("T")[1].split(":00Z")[0]
         mov["day"]  = t["date"].split("T")[0]
         mov["day"] = datetime.datetime.strptime( mov["day"] , '%Y-%m-%d').strftime('%d/%m/%y')
         mov["cinema"] = t["location"]
-        mov["title"] = t["name"]
 
         if not any([mov.items() <= tk.items() for tk in tickets]):
             mov["seat"] = t["seat"] 
@@ -245,10 +246,11 @@ def booking_confirmation():
             return redirect(url_for('movie',movie_title=session["name"],success="True"))
         else:
             for seat in session['seat']:
-                requests.delete("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking",
+                requests.delete(URL_DATABASE + "/raimas1996/Booking_Service_test/1.0.0/booking",
                 json = {'userId': session["id"],
                         'bookingDate': session['date'],
-                        'asset': {'name': session['name'],
+                        'name': session['name'],
+                        'asset': {
                             'location': session['location'], 
                             'seat': seat
                         }
@@ -278,11 +280,12 @@ def movie(movie_title,success=False):
 
             for seat in request.form:
                 if "seat_select" in seat:
-                    if requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking?bookingId={\"location\":\"" + cinema + "\", \"name\":\"" + name + "\", \"seat\":\"" + unquote(request.form.get(seat)) + "\"}").content == b'[]\n':
-                        requests.post("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking",
+                    if requests.get(URL_DATABASE + "/raimas1996/Booking_Service_test/1.0.0/booking?bookingId={\"location\":\"" + cinema + "\", \"name\":\"" + name + "\", \"seat\":\"" + unquote(request.form.get(seat)) + "\"}").content == b'[]\n':
+                        requests.post(URL_DATABASE + "/raimas1996/Booking_Service_test/1.0.0/booking",
                         json = {'userId': session["id"],
                                 'bookingDate': date + ":00Z",
-                                'asset': {'name': name,
+                                'name': name,
+                                'asset': {
                                     'location': cinema, 
                                     'seat': unquote(request.form.get(seat))
                                 }
@@ -301,10 +304,7 @@ def movie(movie_title,success=False):
         movie_details["title"] = "PayON"
         movie_details["description"] = "PayOn is a payment service for xxx.."
 
-        movies = requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/asset?assetKey=name")
-        movies = json.loads(movies.text)
-
-        cinemas = requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/asset?assetId={\"name\":\"" + movie_title + "\"}&assetKey=location")
+        cinemas = requests.get(URL_DATABASE + "/raimas1996/Booking_Service_test/1.0.0/asset?assetKey=location")
         cinemas = json.loads(cinemas.text)
 
         select = request.args.get("cinema")
@@ -331,10 +331,10 @@ def seats():
         cinema = unquote(request.args.get("cinema"))
         movie_title = unquote(request.args.get("movie_title"))
         date = unquote(request.args.get("day")) + ":00Z"
-        seats = requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/asset?assetId={\"name\":\"" + movie_title + "\", \"location\":\"" + cinema + "\"}&assetKey=seat")
+        seats = requests.get(URL_DATABASE + "/raimas1996/Booking_Service_test/1.0.0/asset?assetId={\"location\":\"" + cinema + "\"}&assetKey=seat")
         seats = json.loads(seats.text)
 
-        seats_taken = requests.get("https://es-booking-service.herokuapp.com/raimas1996/Booking_Service_test/1.0.0/booking?bookingId={\"name\":\"" + movie_title + "\", \"location\":\"" + cinema + "\",\"date\":\""+date+"\"}&bookingKey=seat")
+        seats_taken = requests.get(URL_DATABASE + "/raimas1996/Booking_Service_test/1.0.0/booking?bookingId={\"title\":\"" + movie_title + "\", \"location\":\"" + cinema + "\",\"date\":\"" + date + "\"}&bookingKey=seat")
         seats_taken = json.loads(seats_taken.text)
         print(seats_taken)
 
